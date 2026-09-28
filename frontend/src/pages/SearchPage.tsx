@@ -1,5 +1,5 @@
 import type { FormEvent } from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function SearchPage() {
   const [search, setSearch] = useState('');
@@ -22,8 +22,10 @@ export default function SearchPage() {
     catch (err) {
       console.log(err);
     }
-    // TODO: Add the product search request and response handling.
   }
+
+
+  // TODO: Add the product search request and response handling.
 
   return (
     <section className="panel">

@@ -47,10 +47,32 @@ app.get("/api/products", (_request, _response) => {
 });
 
 app.get("/api/comments", (_request, _response) => {
+  const SQLRequest = `SELECT * FROM comments`;
+
+  const results = db.prepare(SQLRequest).all();
+
+  _response.json({ results });
   // TODO: Implement the comments-list exercise.
 });
 
 app.post("/api/comments", (_request, _response) => {
+  //const comments = _request.body.comments;
+  const addComment = _request.body.addComment;
+  const name = addComment.name;
+  const body = addComment.body;
+  console.log(_request.body.addComment);
+
+  if (addComment) {
+    const result = db.prepare(`INSERT INTO comments (name, body) VALUES (?, ?)`).run(name, body);
+
+    _response.json({
+      result,
+      'success': true
+    });
+  }
+  else {
+    _response.status(401).json();
+  }
   // TODO: Implement the comment-submission exercise.
 });
 
