@@ -12,8 +12,8 @@ export default function LoginPage() {
       const response = await fetch('http://127.0.0.1:3001/api/login', {
         method: 'POST',
         headers: {
-          'username': username,
-          'password': password,
+          username,
+          password,
         }
       })
 

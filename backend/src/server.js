@@ -31,11 +31,18 @@ app.post("/api/login", (_request, _response) => {
   else {
     _response.status(401).json();
   }
-
-  return _response;
 });
 
 app.get("/api/products", (_request, _response) => {
+  let term = _request.headers.search;
+
+  const SQLRequest = `SELECT * FROM products WHERE name LIKE '%${term}%'`;
+  console.log(SQLRequest);
+
+  const results = db.prepare(SQLRequest).all();
+
+  _response.json({ results });
+
   // TODO: Implement the product search exercise
 });
 
