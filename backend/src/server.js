@@ -25,7 +25,7 @@ app.post("/api/login", (_request, _response) => {
     _response.json({
       username,
       password,
-      'succes': true
+      'success': true
     });
   }
   else {
@@ -34,16 +34,15 @@ app.post("/api/login", (_request, _response) => {
 });
 
 app.get("/api/products", (_request, _response) => {
+  const wantSearch = _request.body.wantSearch;
   let term = _request.headers.search;
 
-  const SQLRequest = `SELECT * FROM products WHERE name LIKE '%${term}%'`;
+  const SQLRequest = wantSearch ? `SELECT * FROM products WHERE name LIKE '%${term}%'` : `SELECT * FROM comments`;
   console.log(SQLRequest);
 
   const results = db.prepare(SQLRequest).all();
 
   _response.json({ results });
-
-  // TODO: Implement the product search exercise
 });
 
 app.get("/api/comments", (_request, _response) => {
@@ -52,17 +51,15 @@ app.get("/api/comments", (_request, _response) => {
   const results = db.prepare(SQLRequest).all();
 
   _response.json({ results });
-  // TODO: Implement the comments-list exercise.
 });
 
 app.post("/api/comments", (_request, _response) => {
-  //const comments = _request.body.comments;
   const addComment = _request.body.addComment;
-  const name = addComment.name;
-  const body = addComment.body;
-  console.log(_request.body.addComment);
 
   if (addComment) {
+    const name = addComment.name;
+    const body = addComment.body;
+
     const result = db.prepare(`INSERT INTO comments (name, body) VALUES (?, ?)`).run(name, body);
 
     _response.json({
@@ -73,7 +70,6 @@ app.post("/api/comments", (_request, _response) => {
   else {
     _response.status(401).json();
   }
-  // TODO: Implement the comment-submission exercise.
 });
 
 app.listen(port, host, () => {
