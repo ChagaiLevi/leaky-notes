@@ -33,14 +33,23 @@ app.post("/api/login", (_request, _response) => {
   }
 });
 
+app.get("/api/users/:id", (_request, _response) => {
+  const id = _request.params.id;
+  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(id);
+
+  if (user) {
+    _response.json(user);
+  }
+  else {
+    _response.status(404).json();
+  }
+});
+
 app.get("/api/products", (_request, _response) => {
-  const wantSearch = _request.body.wantSearch;
-  let term = _request.headers.search;
-
-  const SQLRequest = wantSearch ? `SELECT * FROM products WHERE name LIKE '%${term}%'` : `SELECT * FROM comments`;
-  console.log(SQLRequest);
-
-  const results = db.prepare(SQLRequest).all();
+  const term = typeof _request.query.search === "string" ? _request.query.search : "";
+  const results = term
+    ? db.prepare("SELECT * FROM products WHERE name LIKE ?").all(`%${term}%`)
+    : db.prepare("SELECT * FROM products").all();
 
   _response.json({ results });
 });

@@ -10,13 +10,7 @@ export default function SearchPage() {
     event.preventDefault();
 
     try {
-      const response = await fetch('http://127.0.0.1:3001/api/products', {
-        method: 'GET',
-        body: JSON.stringify({ wantSearch: true }),
-        headers: {
-          search,
-        }
-      })
+      const response = await fetch(`http://127.0.0.1:3001/api/products?search=${encodeURIComponent(search)}`);
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -24,8 +18,6 @@ export default function SearchPage() {
 
       const data = await response.json();
       setProducts(data.results);
-
-      fetchData();
     }
     catch (err) {
       console.log(err);
@@ -34,10 +26,7 @@ export default function SearchPage() {
 
   const fetchData = async () => {
     try {
-      const response: any = await fetch('http://127.0.0.1:3001/api/products', {
-        method: 'GET',
-        body: JSON.stringify({ wantSearch: false })
-      });
+      const response = await fetch('http://127.0.0.1:3001/api/products');
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);

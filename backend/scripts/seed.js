@@ -8,7 +8,8 @@ db.exec(`
   CREATE TABLE users (
     id INTEGER PRIMARY KEY,
     username TEXT NOT NULL,
-    password TEXT NOT NULL
+    password TEXT NOT NULL,
+    private_note TEXT
   );
 
   CREATE TABLE products (
@@ -23,10 +24,10 @@ db.exec(`
     body TEXT
   );
 
-  INSERT INTO users (id, username, password) VALUES
-    (1, 'admin', 'dummy-admin-password'),
-    (2, 'alice', 'dummy-alice-password'),
-    (3, 'bob', 'dummy-bob-password');
+  INSERT INTO users (id, username, password, private_note) VALUES
+    (1, 'admin', 'dummy-admin-password', 'FAKE recovery phrase: velvet comet maple orbit lantern'),
+    (2, 'alice', 'dummy-alice-password', 'FAKE account balance note: $48,750 in reserve account'),
+    (3, 'bob', 'dummy-bob-password', 'FAKE vault PIN: 7391; backup code: BOB-RECOVER-8842');
 
   INSERT INTO products (id, name, description) VALUES
     (1, 'Notebook', 'A plain paper notebook for lab notes.'),

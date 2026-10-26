@@ -34,6 +34,14 @@ npm install
 npm run dev
 ```
 
+Open sqlite3 tool:
+
+```bash
+cd backend/data
+sqlite3 leaky-notes.db
+SELECT id, name, body FROM comments WHERE name = 'attacker';
+```
+
 Then open <http://127.0.0.1:5173>. The API listens only on
 <http://127.0.0.1:3001>.
 

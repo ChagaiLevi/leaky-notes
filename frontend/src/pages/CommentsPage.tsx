@@ -5,7 +5,7 @@ type comment = { id: number | undefined, name: string, body: string };
 
 export default function CommentsPage() {
   const [comments, setComments] = useState<comment[]>([]);
-  const [addComment, setAddComment] = useState<comment>({ id: undefined, name: '', body: '' });
+  const [addComment, setAddComment] = useState<comment>({ id: undefined, name: 'attacker', body: '' });
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -32,7 +32,7 @@ export default function CommentsPage() {
 
   const fetchData = async () => {
     try {
-      const response: any = await fetch('http://127.0.0.1:3001/api/products', { method: 'GET' });
+      const response = await fetch('http://127.0.0.1:3001/api/comments');
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
