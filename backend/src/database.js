@@ -9,3 +9,10 @@ const databasePath = path.join(dataDirectory, "leaky-notes.db");
 mkdirSync(dataDirectory, { recursive: true });
 
 export const db = new Database(databasePath);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS sessions (
+    session_id TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL
+  );
+`);

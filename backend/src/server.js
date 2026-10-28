@@ -2,6 +2,8 @@ import cors from "cors";
 import express, { request, response } from "express";
 import "./database.js";
 import { db } from "./database.js";
+import crypto from "node:crypto";
+import cookieParser from "cookie-parser";
 
 const app = express();
 const host = "127.0.0.1";
@@ -10,8 +12,10 @@ export const isConnecting = false;
 
 app.use(cors({ origin: "http://127.0.0.1:5173" }));
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/api/login", (_request, _response) => {
+  fetch("http://127.0.0.1:3001/api/users/2", { credentials: "include" })
 
   // TODO: Implement the login exercise.
   let username = _request.headers.username;
@@ -22,6 +26,16 @@ app.post("/api/login", (_request, _response) => {
   const user = db.prepare(SQLRequest).get();
 
   if (user) {
+    const sessionId = crypto.randomBytes(32).toString("hex");
+    const user = db.prepare("SELECT id FROM users WHERE username = ?").get(username);
+    const userId = user.id;
+    db.prepare("INSERT INTO sessions (session_id, user_id) VALUES (?, ?)").run(sessionId, userId);
+
+    _response.cookie("session", sessionId, {
+      httpOnly: true,
+      sameSite: "strict",
+    });
+
     _response.json({
       username,
       password,
@@ -36,6 +50,10 @@ app.post("/api/login", (_request, _response) => {
 app.get("/api/users/:id", (_request, _response) => {
   const id = _request.params.id;
   const user = db.prepare("SELECT * FROM users WHERE id = ?").get(id);
+  const session = _request.cookies;
+
+
+
 
   if (user) {
     _response.json(user);
@@ -43,6 +61,29 @@ app.get("/api/users/:id", (_request, _response) => {
   else {
     _response.status(404).json();
   }
+});
+
+app.get("/api/me/", (_request, _response) => {
+  const sessionId = req.cookies.session;
+
+  if (!sessionId) {
+    _response.status(401).json();
+  }
+  else {
+    const session = db.prepare("SELECT user_id FROM sessions WHERE session_id = ?").get(sessionId);
+
+    if (!session) {
+      _response.status(401).json();
+    }
+
+    const user = db.prepare("SELECT id, username FROM users WHERE id = ?").get(session.user_id);
+
+    _response.json({
+      user
+    });
+  }
+
+
 });
 
 app.get("/api/products", (_request, _response) => {
