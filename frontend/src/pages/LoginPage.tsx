@@ -48,6 +48,28 @@ export default function LoginPage() {
     }
   }
 
+  async function logOut(event: React.MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+
+    // TODO: Add the login request and response handling for the exercise.
+    try {
+      const response = await fetch('http://127.0.0.1:3001/api/logout', {
+        method: 'GET',
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      else {
+        setIsLogged(false);
+      }
+    }
+    catch (err) {
+      console.log(err);
+    }
+  }
+
   return (
     <section className="panel">
       {!isLogged ? <>
@@ -68,7 +90,7 @@ export default function LoginPage() {
         <div className="output" aria-live="polite">
           <div>Welcome {username}!</div>
           <div>You Logged</div>
-          <a href="http://127.0.0.1:3001/api/logout">Logout</a>
+          <button onClick={(e) => logOut(e)}>Logout</button>
         </div>
       }
     </section>

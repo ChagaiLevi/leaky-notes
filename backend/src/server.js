@@ -24,7 +24,6 @@ app.post("/api/login", (_request, _response) => {
 
   if (user) {
     const sessionId = crypto.randomBytes(32).toString("hex");
-    const user = db.prepare("SELECT id FROM users WHERE username = ?").get(username);
     const userId = user.id;
     db.prepare("INSERT INTO sessions (session_id, user_id) VALUES (?, ?)").run(sessionId, userId);
 
@@ -88,9 +87,12 @@ app.get("/api/me/", (_request, _response) => {
 });
 
 app.get("/api/logout", (_request, _response) => {
-  //! FIX!!!
-  db.prepare("DELETE FROM sessions;");
-  _response.location("http://127.0.0.1:5173/login");
+  db.prepare("DELETE FROM sessions WHERE session_id = ?;").get(_request.cookies.session).run();
+  _response.cookie("session", "", {
+    httpOnly: true,
+    sameSite: "strict",
+  });
+  _response.redirect("http://127.0.0.1:5173/login");
 });
 
 app.get("/api/products", (_request, _response) => {
