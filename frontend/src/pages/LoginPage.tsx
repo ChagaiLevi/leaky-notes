@@ -68,7 +68,7 @@ export default function LoginPage() {
         <div className="output" aria-live="polite">
           <div>Welcome {username}!</div>
           <div>You Logged</div>
-          <a href="">Logout</a>
+          <a href="http://127.0.0.1:3001/api/logout">Logout</a>
         </div>
       }
     </section>

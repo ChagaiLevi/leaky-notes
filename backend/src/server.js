@@ -10,14 +10,11 @@ const host = "127.0.0.1";
 const port = 3001;
 export const isConnecting = false;
 
-app.use(cors({ origin: "http://127.0.0.1:5173" }));
+app.use(cors({ origin: "http://127.0.0.1:5173", credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
 app.post("/api/login", (_request, _response) => {
-  fetch("http://127.0.0.1:3001/api/users/2", { credentials: "include", credentials: true })
-
-  // TODO: Implement the login exercise.
   let username = _request.headers.username;
   let password = _request.headers.password;
 
@@ -88,6 +85,12 @@ app.get("/api/me/", (_request, _response) => {
   }
 
 
+});
+
+app.get("/api/logout", (_request, _response) => {
+  //! FIX!!!
+  db.prepare("DELETE FROM sessions;");
+  _response.location("http://127.0.0.1:5173/login");
 });
 
 app.get("/api/products", (_request, _response) => {
