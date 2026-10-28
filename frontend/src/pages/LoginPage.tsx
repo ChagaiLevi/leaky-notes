@@ -7,13 +7,13 @@ export default function LoginPage() {
   const [isLogged, setIsLogged] = useState<boolean>(false);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:3001/api/me", { credentials: "include" })
+    fetch("http://127.0.0.1:3001/api/me/", { credentials: "include" })
       .then(res => {
         if (!res.ok) throw new Error("not logged in");
         return res.json();
       })
       .then(user => {
-        setUserName(user.username);
+        setUserName(user.user.username);
         setIsLogged(true);
       })
       .catch(() => {
@@ -32,7 +32,8 @@ export default function LoginPage() {
         headers: {
           username,
           password,
-        }
+        },
+        credentials: "include",
       });
 
       if (!response.ok) {

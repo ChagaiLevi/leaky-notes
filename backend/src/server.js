@@ -15,7 +15,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.post("/api/login", (_request, _response) => {
-  fetch("http://127.0.0.1:3001/api/users/2", { credentials: "include" })
+  fetch("http://127.0.0.1:3001/api/users/2", { credentials: "include", credentials: true })
 
   // TODO: Implement the login exercise.
   let username = _request.headers.username;
@@ -50,13 +50,16 @@ app.post("/api/login", (_request, _response) => {
 app.get("/api/users/:id", (_request, _response) => {
   const id = _request.params.id;
   const user = db.prepare("SELECT * FROM users WHERE id = ?").get(id);
-  const session = _request.cookies;
+  // const sessionUser = _request.cookies.session;
+  const session = db.prepare("SELECT id FROM sessions WHERE username = ?").get(_request.cookies.session);
 
 
 
-
-  if (user) {
+  if (user && session) {
     _response.json(user);
+  }
+  else if (user) {
+    _response.status(403).json();
   }
   else {
     _response.status(404).json();
@@ -64,7 +67,7 @@ app.get("/api/users/:id", (_request, _response) => {
 });
 
 app.get("/api/me/", (_request, _response) => {
-  const sessionId = req.cookies.session;
+  const sessionId = _request.cookies.session;
 
   if (!sessionId) {
     _response.status(401).json();
@@ -74,6 +77,7 @@ app.get("/api/me/", (_request, _response) => {
 
     if (!session) {
       _response.status(401).json();
+      return;
     }
 
     const user = db.prepare("SELECT id, username FROM users WHERE id = ?").get(session.user_id);
