@@ -7,13 +7,18 @@ export default function LoginPage() {
   const [isLogged, setIsLogged] = useState<boolean>(false);
 
   useEffect(() => {
-    fetch("/api/me", { credentials: "include" })
-      .then(res => res.json())
+    fetch("http://127.0.0.1:3001/api/me", { credentials: "include" })
+      .then(res => {
+        if (!res.ok) throw new Error("not logged in");
+        return res.json();
+      })
       .then(user => {
         setUserName(user.username);
         setIsLogged(true);
       })
-      .catch(() => setIsLogged(false));
+      .catch(() => {
+        setIsLogged(false);
+      });
   }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
