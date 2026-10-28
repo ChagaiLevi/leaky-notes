@@ -62,7 +62,10 @@ export default function LoginPage() {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       else {
+        console.log("reached 65");
         setIsLogged(false);
+        setUserName('');
+        setPassword('');
       }
     }
     catch (err) {

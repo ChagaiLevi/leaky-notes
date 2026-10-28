@@ -87,12 +87,12 @@ app.get("/api/me/", (_request, _response) => {
 });
 
 app.get("/api/logout", (_request, _response) => {
-  db.prepare("DELETE FROM sessions WHERE session_id = ?;").get(_request.cookies.session).run();
+  db.prepare("DELETE FROM sessions WHERE session_id = ?;").run(_request.cookies.session);
   _response.cookie("session", "", {
     httpOnly: true,
     sameSite: "strict",
   });
-  _response.redirect("http://127.0.0.1:5173/login");
+  _response.status(200).json({ message: "Logged out successfully" });
 });
 
 app.get("/api/products", (_request, _response) => {
