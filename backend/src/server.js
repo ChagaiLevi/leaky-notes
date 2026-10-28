@@ -47,18 +47,18 @@ app.get("/api/users/:id", (_request, _response) => {
   const id = _request.params.id;
   const user = db.prepare("SELECT * FROM users WHERE id = ?").get(id);
   // const sessionUser = _request.cookies.session;
-  const session = db.prepare("SELECT id FROM sessions WHERE username = ?").get(_request.cookies.session);
+  const userIdVerify = db.prepare("SELECT user_id FROM sessions WHERE session_id = ?").get(_request.cookies.session);
 
 
 
-  if (user && session) {
+  if (user && userIdVerify == Number(id)) {
     _response.json(user);
   }
   else if (user) {
     _response.status(403).json();
   }
   else {
-    _response.status(404).json();
+    _response.status(401).json();
   }
 });
 
