@@ -49,9 +49,10 @@ app.get("/api/users/:id", (_request, _response) => {
   // const sessionUser = _request.cookies.session;
   const userIdVerify = db.prepare("SELECT user_id FROM sessions WHERE session_id = ?").get(_request.cookies.session);
 
-
-
-  if (user && userIdVerify == Number(id)) {
+  if (!userIdVerify && !user) {
+    _response.status(401).json();
+  }
+  else if (user && userIdVerify && userIdVerify.user_id == Number(id)) {
     _response.json(user);
   }
   else if (user) {
