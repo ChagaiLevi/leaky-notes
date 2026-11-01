@@ -8,7 +8,6 @@ import cookieParser from "cookie-parser";
 const app = express();
 const host = "127.0.0.1";
 const port = 3001;
-export const isConnecting = false;
 
 app.use(cors({ origin: "http://127.0.0.1:5173", credentials: true }));
 app.use(express.json());
@@ -34,7 +33,6 @@ app.post("/api/login", (_request, _response) => {
 
     _response.json({
       username,
-      password,
       'success': true
     });
   }
@@ -45,18 +43,18 @@ app.post("/api/login", (_request, _response) => {
 
 app.get("/api/users/:id", (_request, _response) => {
   const id = _request.params.id;
-  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(id);
+  const user = db.prepare("SELECT username, private_note FROM users WHERE id = ?").get(id);
   // const sessionUser = _request.cookies.session;
   const userIdVerify = db.prepare("SELECT user_id FROM sessions WHERE session_id = ?").get(_request.cookies.session);
 
   if (!userIdVerify && !user) {
-    _response.status(401).json();
+    _response.status(404).json();
   }
   else if (user && userIdVerify && userIdVerify.user_id == Number(id)) {
     _response.json(user);
   }
   else if (user) {
-    _response.status(403).json();
+    _response.status(401).json();
   }
   else {
     _response.status(401).json();
