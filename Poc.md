@@ -18,15 +18,13 @@
 
 ## 📊 Findings Summary
 
-| ID   | Title             | Severity                     | Status                       |
-| ---- | ----------------- | ---------------------------- | ---------------------------- |
-| F-01 | _(finding title)_ | _(Critical/High/Medium/Low)_ | _(Open/Fixed/Accepted Risk)_ |
-| F-02 | _(...)_           | _(...)_                      | _(...)_                      |
+| ID   | Title                  | Severity | Status |
+| ---- | ---------------------- | -------- | ------ |
+| F-03 | IDOR                   | Critical | Fixed  |
+| F-01 | SQL Injection in Login | Critical | Open   |
+| F-02 | Stored XSS             | High     | Open   |
 
 ---
----
-
-<!-- ## 🔻 Finding Block (duplicate per vulnerability) -->
 
 ### [F-01] SQL Injection in Login
 
@@ -103,7 +101,7 @@ Keep-Alive: timeout=5
 ### 💥 Impact (CIA)
 - **Confidentiality:** an attacker could extract usernames and passwords.
 - **Integrity:** Yes, if you log in to the admin account.
-- **Availability:** Yes, because he can also log in as the 'admin' user.
+- **Availability:** Low.
 
 ### 🔧 Remediation
 - **Primary fix:** Use parameterized queries instead of string concatenation.
@@ -128,8 +126,8 @@ Like this:
 | **Status**     | Open                                |
 
 ### 🎯 Location
-- **Affected endpoint:** `GET /api/comments/` 
-- **Vulnerable parameter:** `search` location: header
+- **Affected endpoint:** `POST /api/comments/` 
+- **Vulnerable parameter:** `body` location: body
 
 ### 📝 Description
 Stored XSS in the comments feature. A comment's `body` is persisted in the database and rendered on the `/comments` page via React's `dangerouslySetInnerHTML` without sanitization, which bypasses React's default escaping and treats stored user input as trusted HTML. As a result, an attacker can store active markup that executes in the browser of every user who loads the page (Stored XSS — no interaction required). Because the `session` cookie is not marked `HttpOnly`, the injected script can read it via `document.cookie` and exfiltrate it, enabling session hijacking and potential account takeover of any viewer.
@@ -173,64 +171,70 @@ None — accessible to any user
 - CWE: https://cwe.mitre.org/data/definitions/79.html
 
 ---
-### [F-XX] Short, clear finding title
+### [F-03] IDOR
 
 | Field          | Details                                    |
 | -------------- | ------------------------------------------ |
 | **Severity**   | Critical                                   |
-| **CVSS Score** | 9.1 — optional                             |
+| **CVSS Score** | 9.1                                        |
 | **Category**   | OWASP A01: Broken Access Control · CWE-639 |
 | **Status**     | Fixed                                      |
 
 ### 🎯 Location
 - **Affected endpoint:**  `GET /api/users/:id`
-- **Vulnerable parameter:** `<param>` _(location: query / body / header / cookie / path)_
+- **Vulnerable parameter:** `id` location: path
 
 ### 📝 Description
-_(In your own words: what the vulnerability is and why it exists. Name the misplaced trust — what the server/code assumes, and what the attacker can do instead.)_
+An IDOR vulnerability occurs when an identifier (ID)—typically a number—is used on the server side. An attacker might ask themselves, "What happens if I change my user ID—for example, from 3 to 2?" and then test this hypothesis. Consequently, they gain access to another user's information. This vulnerability exists because the server fails to verify whether the user possesses the appropriate permissions to access a specific page (i.e., whether the user is truly the owner of the personal data being accessed).
+In other words, the server assumes that anyone accessing a specific ID is the legitimate owner of that account. As a result, an attacker can simply access the system and view personal information—and, in some cases, even passwords.
+Furthermore, an attacker can access the personal details of the administrator by changing the ID to 1. Since the server does not verify whether the user is actually an administrator, the attacker gains access to the administrator's personal data and other sensitive information.
 
 ### 🔑 Preconditions
-_(Authentication required? Special privileges? If none — "None — accessible to any user".)_
+None — accessible to any user
 
 ### 🔁 Steps to Reproduce
-1. _(...)_
-2. _(...)_
-3. _(...)_
+1. Open Burp Suite.
+2. Go to the **Proxy** tab, click on **HTTP history**, and then click **Open Browser**.
+3. Enter the `localhost` URL into the address bar of the Burp Suite browser.
+4. In the HTTP request, check the server's address (look at the `GET` requests to see where they are directed) and copy the server's address.
+5. Once you have it, open a new tab in the Burp Suite browser and paste the server's address.
+6. Append `api/users/(your id)` to the end of the address, press Enter, and your private information will appear.
+7. Now, change the `id` to `1` and press Enter.
+8. Congratulations! You have successfully accessed the admin's private information.
 
 ### 💉 Payload
-```
-<the-exact-payload-here>
+```http
+GET /api/users/2
+
+GET /api/users/1
 ```
 
 ### 👁️ Observed Result
-_(What actually happened, including the observable signal. E.g. "Received another user's private_note", or "Correct guess → 200, incorrect → 401".)_
+A private note (`private_note`) was received from another user. I can also do this for the admin by changing the number to 1.
+
+```json
+{"username":"alice","private_note":"FAKE account balance note: $48,750 in reserve account"}
+
+{"username":"admin","private_note":"FAKE recovery phrase: velvet comet maple orbit lantern"}
+```
 
 ### 📸 Evidence
-- `screenshot-01.png` — _(description: request and response)_
-- `screenshot-02.png` — _(description: two-state comparison / before-after)_
+- `server-address.png` — Discovering the server's address
+- `userId.png` — Information about the attacker user
+- `admin-acking-id.png` — Changing the number to 1 and personal information about the admin
+- `after-the-fixes.png` — What it looks like after adding a test user on the server
 
 ### 💥 Impact (CIA)
-- **Confidentiality:** _(Is data leaked? Which?)_
-- **Integrity:** _(Can data be modified/deleted?)_
-- **Availability:** _(Can the service be disrupted/taken down?)_
+- **Confidentiality:** A leak of all the personal details that users provided on the site.
+- **Integrity:** Yes, the leaked recovery phrase could potentially be chained to account recovery/takeover (not demonstrated)
+- **Availability:** Low.
 
 ### 🔧 Remediation
-- **Primary fix:** _(the main fix — in your own words.)_
-- **Defense in Depth:** _(extra layers: least privilege, server-side validation, etc.)_
+- **Primary fix:** Added a server-side check to verify whether the user should have access to this data. If not, block access (already fixed).
+- **Defense in Depth:** None
 
 ### 🔗 References
-- OWASP: _(link)_
-- CWE: _(link)_
+- OWASP: https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control
+- CWE: https://cwe.mitre.org/data/definitions/639.html
 
 ---
-
-## 📎 Appendix — Severity Quick Guide
-
-| Severity     | When                                                                       |
-| ------------ | -------------------------------------------------------------------------- |
-| **Critical** | Easy to exploit + full impact (RCE, full takeover, whole-DB leak, no auth) |
-| **High**     | Sensitive data leak/modification, authentication bypass                    |
-| **Medium**   | Limited impact, or requires certain conditions                             |
-| **Low**      | Minor impact / non-sensitive information                                   |
-
-> **CVSS** — industry-standard severity score (0–10). Calculator: https://www.first.org/cvss/calculator/3.1
